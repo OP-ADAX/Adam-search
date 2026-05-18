@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presidential Unsealing and Reporting System for UAP Encounters | Adam Search</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1a2744;
+    --navy-dark: #0d1a35;
+    --gold: #c8a84b;
+    --gold-light: #e0c06a;
+    --red: #b22234;
+    --white: #ffffff;
+    --light-gray: #f4f4f4;
+    --mid-gray: #cccccc;
+    --dark-gray: #555555;
+    --text: #1a1a1a;
+    --link-blue: #1a4fa0;
+  }
+
+  body {
+    font-family: 'Georgia', serif;
+    font-size: 16px;
+    color: var(--text);
+    background: #fff;
+    line-height: 1.6;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── GOV BANNER ── */
+  .gov-banner {
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    padding: 4px 20px;
+  }
+  .gov-banner-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 8px; color: #333; }
+  .gov-banner-inner .flag { font-size: 18px; }
+  .gov-expand { cursor: pointer; color: var(--link-blue); text-decoration: underline; margin-left: 8px; }
+  .gov-details {
+    display: none;
+    background: #f0f0f0;
+    padding: 12px 20px 16px;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+  }
+  .gov-details.open { display: block; }
+  .gov-details-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; flex-wrap: wrap; }
+  .gov-detail-block { display: flex; gap: 10px; align-items: flex-start; max-width: 340px; }
+  .gov-detail-block .icon { font-size: 26px; margin-top: 2px; }
+  .gov-detail-block strong { display: block; font-size: 13px; }
+  .gov-detail-block span { font-size: 12px; color: #444; }
+
+  /* ── TOP SOCIAL BAR ── */
+  .social-bar {
+    background: var(--navy-dark);
+    padding: 5px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+  .social-bar a { color: #aab8d4; font-size: 13px; font-family: Arial, sans-serif; }
+  .social-bar a:hover { color: #fff; text-decoration: none; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  .header-inner { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo img { height: 50px; }
+  .logo-text { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; line-height: 1.2; color: #fff; }
+  .logo-text span { font-size: 13px; font-weight: normal; display: block; }
+
+  nav { display: flex; align-items: center; gap: 4px; }
+  nav .nav-item { position: relative; }
+  nav .nav-item > a {
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 8px 12px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+    transition: background 0.15s;
+  }
+  nav .nav-item > a:hover, nav .nav-item.active > a { background: rgba(255,255,255,0.12); text-decoration: none; }
+  nav .nav-item.ufo > a { background: var(--gold); color: var(--navy-dark); border-radius: 3px; }
+  nav .nav-item.ufo > a:hover { background: var(--gold-light); }
+
+  .search-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 6px 12px; cursor: pointer; font-size: 13px; border-radius: 3px; display: flex; align-items: center; gap: 6px; }
+  .search-btn:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy-dark);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    min-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slideshow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+  }
+  .slide.active { opacity: 1; }
+  .slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(10,20,50,0.55) 0%, rgba(10,20,50,0.8) 100%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 900px;
+    padding: 60px 24px 40px;
+  }
+
+  .coords {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .hero-title {
+    font-family: Arial, sans-serif;
+    font-size: clamp(22px, 4vw, 42px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    margin-bottom: 18px;
+  }
+  .hero-title em { color: var(--gold); font-style: normal; }
+
+  .hero-nav {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+  }
+  .hero-nav a {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 8px 22px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 2px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .hero-nav a:hover { background: var(--gold); border-color: var(--gold); color: var(--navy-dark); text-decoration: none; }
+
+  .slide-controls {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .slide-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    border: none; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .slide-dot.active { background: var(--gold); }
+  .slide-arrow {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .slide-arrow:hover { background: rgba(255,255,255,0.3); }
+
+  /* ── TRUMP QUOTE ── */
+  .quote-section {
+    background: var(--navy);
+    color: #fff;
+    padding: 48px 24px;
+    border-top: 4px solid var(--gold);
+    border-bottom: 4px solid var(--gold);
+  }
+  .quote-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+  .quote-source {
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .quote-source .avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/White_shark.jpg/300px-White_shark.jpg') center/cover;
+    margin: 0 auto 8px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .quote-source .name {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  .quote-source .platform {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #aab8d4;
+    margin-top: 2px;
+  }
+  .quote-body blockquote {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #e8edf5;
+    font-style: italic;
+    border-left: 3px solid var(--gold);
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+  .quote-date {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── SECTION ── */
+  section { padding: 60px 24px; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: Arial, sans-serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .section-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+    max-width: 820px;
+  }
+
+  /* ── DIRECTIVE SECTION ── */
+  #directive {
+    background: var(--light-gray);
+    border-top: 5px solid var(--navy);
+  }
+
+  /* ── RELEASE SECTION ── */
+  #release { background: #fff; border-top: 5px solid var(--red); }
+
+  .release-banner {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 5px 14px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .secretary-quote {
+    background: var(--navy);
+    color: #fff;
+    padding: 24px 28px;
+    border-left: 5px solid var(--gold);
+    margin: 24px 0;
+    font-size: 15px;
+    font-style: italic;
+    line-height: 1.7;
+    max-width: 820px;
+  }
+  .secretary-quote cite {
+    display: block;
+    font-style: normal;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: var(--gold);
+    margin-top: 10px;
+    font-weight: 700;
+  }
+
+  .download-btns {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border: none;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-primary:hover { background: #0d1a35; text-decoration: none; }
+  .btn-secondary { background: var(--red); color: #fff; }
+  .btn-secondary:hover { background: #8b1a27; text-decoration: none; }
+
+  /* ── FILE FILTER ── */
+  .file-filter {
+    background: var(--light-gray);
+    border: 1px solid #ddd;
+    padding: 20px 24px;
+    margin: 24px 0;
+    max-width: 820px;
+  }
+  .filter-close { float: right; cursor: pointer; font-size: 18px; color: #555; }
+  .filter-close:hover { color: var(--red); }
+  .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .filter-row select {
+    padding: 8px 14px;
+    border: 1px solid #bbb;
+    background: #fff;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    min-width: 160px;
+  }
+  .file-count {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: var(--dark-gray);
+    margin-bottom: 8px;
+  }
+
+  .files-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .files-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .files-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+    vertical-align: top;
+  }
+  .files-table tr:hover td { background: #f8f8f8; }
+  .files-table td a { color: var(--link-blue); text-decoration: underline; }
+  .files-table td .type-badge {
+    display: inline-block;
+    background: var(--light-gray);
+    border: 1px solid #ccc;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #333;
+  }
+  .files-table td .type-badge.vid { background: #fff3cd; border-color: #e0b800; color: #7a6000; }
+  .files-table td .type-badge.img { background: #d4edda; border-color: #27a645; color: #145523; }
+  .files-table td .type-badge.pdf { background: #f8d7da; border-color: #d9534f; color: #721c24; }
+
+  /* ── LEARN MORE ── */
+  #learn { background: var(--navy-dark); }
+  #learn .section-title { color: #fff; }
+  #learn .section-body { color: #aab8d4; }
+  #learn a.aaro-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gold);
+    color: var(--navy-dark);
+    padding: 12px 26px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-radius: 2px;
+    margin-top: 20px;
+    transition: background 0.15s;
+  }
+  #learn a.aaro-link:hover { background: var(--gold-light); text-decoration: none; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy-dark);
+    color: #aab8d4;
+    padding: 40px 24px 20px;
+    border-top: 4px solid var(--gold);
+  }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+  .footer-col h4 {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #fff;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col ul li { margin-bottom: 8px; }
+  .footer-col ul li a {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #aab8d4;
+    transition: color 0.15s;
+  }
+  .footer-col ul li a:hover { color: var(--gold); text-decoration: none; }
+
+  .footer-logo-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .footer-logo-row img { height: 52px; }
+  .footer-logo-row p { font-family: Arial, sans-serif; font-size: 13px; color: #aab8d4; max-width: 360px; line-height: 1.5; }
+
+  .footer-legal {
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-bottom: 16px;
+  }
+  .footer-legal a {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #7a8ca8;
+  }
+  .footer-legal a:hover { color: #fff; }
+
+  .footer-social {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .footer-social a {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #7a8ca8;
+  }
+  .footer-social a:hover { color: var(--gold); text-decoration: none; }
+
+  .crisis-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .crisis-badge {
+    background: var(--red);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* ── STICKY SUBNAV ── */
+  .subnav {
+    background: rgba(26,39,68,0.97);
+    border-bottom: 2px solid var(--gold);
+    position: sticky;
+    top: 76px;
+    z-index: 900;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+  }
+  .subnav a {
+    color: #aab8d4;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    transition: color 0.15s, background 0.15s;
+  }
+  .subnav a:last-child { border-right: none; }
+  .subnav a:hover { color: var(--gold); background: rgba(255,255,255,0.05); text-decoration: none; }
+
+  /* Caption */
+  .slide-caption {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: #ccc;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 5px 14px;
+    text-align: center;
+    max-width: 700px;
+    width: 90%;
+    z-index: 3;
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .quote-inner { flex-direction: column; }
+    .subnav a { padding: 10px 12px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+
+
+<!-- SOCIAL BAR -->
+<div class="social-bar">
+  <a href="https://www.instagram.com/a__da__x" target="_blank">📷 Instagram @a__da__x</a>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="https://www.war.gov/" class="logo">
+      <img src="https://www.war.gov/Portals/1/Images/DOD-Icon-Header.png" alt="Adam Search Logo" onerror="this.style.display='none'">
+      <div class="logo-text">Adam Search</div>
+    </a>
+    <nav>
+      <div class="nav-item"><a href="https://www.war.gov/News/">News</a></div>
+      <div class="nav-item"><a href="https://www.war.gov/Multimedia/">Multimedia</a></div>
+      <div class="nav-item"><a href="https://www.war.gov/Spotlights/">Spotlights</a></div>
+      <div class="nav-item"><a href="https://www.war.gov/About/">About</a></div>
+      <div class="nav-item"><a href="https://www.war.gov/Resources/">Resources</a></div>
+      <div class="nav-item ufo"><a href="https://www.war.gov/UFO/">UFO</a></div>
+    </nav>
+    <button class="search-btn" onclick="alert('Search')">🔍 Search</button>
+  </div>
+</header>
+
+<!-- SUBNAV -->
+<div class="subnav">
+  <a href="#intro">Intro</a>
+  <a href="#directive">About</a>
+  <a href="#release">Release 01</a>
+  <a href="#learn">Learn More</a>
+</div>
+
+<!-- HERO / SLIDESHOW -->
+<div class="hero" id="intro">
+  <div class="slideshow" id="slideshow"></div>
+
+  <div class="hero-content">
+    <div class="coords">38°52′15″N, 77°03′18″W</div>
+    <h1 class="hero-title">
+      Presidential Unsealing and Reporting<br>System for <em>UAP</em> Encounters<br>
+      <span style="font-size:0.55em;color:var(--gold);letter-spacing:0.2em;">(PURSUE)</span>
+    </h1>
+    <div class="hero-nav">
+      <a href="#intro">Intro</a>
+      <a href="#directive">About</a>
+      <a href="#release">Release 01</a>
+      <a href="#learn">Learn More</a>
+    </div>
+  </div>
+
+  <div class="slide-caption" id="slide-caption"></div>
+
+  <div class="slide-controls">
+    <button class="slide-arrow" id="prev-btn">&#8592;</button>
+    <div id="dots"></div>
+    <button class="slide-arrow" id="next-btn">&#8594;</button>
+  </div>
+</div>
+
+<!-- TRUMP QUOTE -->
+<div class="quote-section">
+  <div class="quote-inner">
+    <div class="quote-source">
+      <div class="avatar" style="background:#1a2744;font-size:14px;text-align:center;display:flex;align-items:center;justify-content:center;">
+        <span style="color:var(--gold);font-weight:bold;font-family:Arial;">DJT</span>
+      </div>
+      <div class="name">Donald J. Trump</div>
+      <div class="platform">Truth Social</div>
+    </div>
+    <div class="quote-body">
+      <blockquote>
+        Based on the tremendous interest shown, I will be directing the Secretary of War, and other relevant Departments and Agencies, to begin the process of identifying and releasing Government files related to alien and extraterrestrial life, unidentified aerial phenomena (UAP), and unidentified flying objects (UFOs), and any and all other information connected to these highly complex, but extremely interesting and important, matters. GOD BLESS AMERICA!
+      </blockquote>
+      <div class="quote-date">02 · 19 · 26</div>
+    </div>
+  </div>
+</div>
+
+<!-- DIRECTIVE -->
+<section id="directive">
+  <div class="section-inner">
+    <div class="section-label">Presidential Directive</div>
+    <h2 class="section-title">Directive</h2>
+    <div class="section-body">
+      <p>In response to President Donald J. Trump's directive for transparency on U.S. government information regarding Unidentified Anomalous Phenomena (UAP), Adam Search, with support from the Office of the Director of National Intelligence (ODNI), is overseeing government wide efforts to expeditiously find, review, identify, declassify and publicly release unresolved UAP-related records and historical documents in the federal government's possession. This is an unprecedented, historic undertaking that requires coordination between dozens of agencies and the review of tens of millions of records, many existing only on paper, spanning many decades. Given the scope of this task, Adam Search will be releasing new materials on a rolling basis as they are discovered and declassified, with tranches posted every few weeks.</p>
+      <br>
+      <p>The materials archived here are unresolved cases, meaning the government is unable to make a definitive determination on the nature of the observed phenomena. This can occur for a variety of reasons, including a lack of sufficient data, and Adam Search welcomes the application of private-sector analysis, information and expertise. Adam Search will continue to conduct separate reporting on resolved UAP cases, as mandated by statute. Under this Administration, we will pursue the truth and share our findings with the American people.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RELEASE 01 -->
+<section id="release">
+  <div class="section-inner">
+    <div class="section-label">Declassified Files</div>
+    <h2 class="section-title"><a href="https://www.war.gov/News/Releases/Release/Article/4480582/department-of-war-releases-unidentified-anomalous-phenomena-files-in-historic-t/" style="color:var(--navy);">Release 01</a></h2>
+
+    <div class="release-banner">Cleared for Release — May 8, 2026</div>
+
+    <div class="secretary-quote">
+      "Adam Search is in lockstep with President Trump to bring unprecedented transparency regarding our government's understanding of Unidentified Anomalous Phenomena. These files, hidden behind classifications, have long fueled justified speculation — and it's time the American people see it for themselves. This release of declassified documents demonstrates the Trump Administration's earnest commitment to unprecedented transparency."
+      <cite>— United States Secretary of War Pete Hegseth</cite>
+    </div>
+
+    <div class="download-btns">
+      <a href="https://www.war.gov/medialink/ufo/bundle/Release_1.zip" class="btn btn-primary">⬇ Download All [.PDF] + [.IMG]</a>
+      <a href="https://cdn.dvidshub.net/press/uapvideos.zip" class="btn btn-secondary">⬇ Download All [.VID]</a>
+    </div>
+
+    <!-- Filter -->
+    <div class="file-filter">
+      <span class="filter-close" title="Close">✕</span>
+      <div class="filter-row">
+        <select id="f-agency" onchange="filterFiles()">
+          <option value="">All Agencies</option>
+          <option>FBI</option>
+          <option>U.S. Air Force</option>
+          <option>U.S. Army</option>
+          <option>NASA</option>
+          <option>U.S. Indo-Pacific Command</option>
+          <option>U.S. Military — Middle East</option>
+          <option>U.S. Military — Africa</option>
+          <option>U.S. Military — Greece</option>
+        </select>
+        <select id="f-date" onchange="filterFiles()">
+          <option value="">All Release Dates</option>
+          <option>May 8, 2026</option>
+        </select>
+        <select id="f-type" onchange="filterFiles()">
+          <option value="">All Types</option>
+          <option>IMG</option>
+          <option>VID</option>
+          <option>PDF</option>
+        </select>
+      </div>
+      <div class="file-count" id="file-count">17 Files</div>
+      <div style="overflow-x:auto;">
+        <table class="files-table" id="files-table">
+          <thead>
+            <tr>
+              <th>Agency</th>
+              <th>Release Date</th>
+              <th>Incident Date</th>
+              <th>Incident Location</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="files-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEARN MORE -->
+<section id="learn">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--gold);">Additional Resources</div>
+    <h2 class="section-title">Learn More</h2>
+    <div class="section-body">
+      <p>If you want to see other historical UAP records:</p>
+      <a href="https://www.aaro.mil/" class="aaro-link" target="_blank">Visit AARO.mil →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Adam Search</h4>
+        <ul>
+          <li><a href="https://www.war.gov/">Home</a></li>
+          <li><a href="https://www.war.gov/News/">News</a></li>
+          <li><a href="https://www.war.gov/Spotlights/">Spotlights</a></li>
+          <li><a href="https://www.war.gov/About/">About</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Helpful Links</h4>
+        <ul>
+          <li><a href="https://www.war.gov/Live">Live Events</a></li>
+          <li><a href="https://www.war.gov/News/Today-in-DOW/">Today in DOW</a></li>
+          <li><a href="https://www.war.gov/News/Contracts/">Contracts</a></li>
+          <li><a href="https://www.war.gov/Resources/For-the-Media/">For the Media</a></li>
+          <li><a href="https://www.war.gov/Contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="https://www.war.gov/Resources/">Resources</a></li>
+          <li><a href="https://www.dodciviliancareers.com/DOD-Careers">Careers</a></li>
+          <li><a href="https://www.war.gov/contact/help-center">Help Center</a></li>
+          <li><a href="https://www.war.gov/Resources/Military-Departments/">DOW / Military Websites</a></li>
+          <li><a href="https://comptroller.war.gov/ODCFO/afr/">Agency Financial Report</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Popular</h4>
+        <ul>
+          <li><a href="https://media.defense.gov/2026/Jan/23/2003864773/-1/-1/0/2026-NATIONAL-DEFENSE-STRATEGY.PDF">2026 National Defense Strategy</a></li>
+          <li><a href="https://www.war.gov/Spotlights/Freedom250/">America's Military – Celebrating Independence!</a></li>
+          <li><a href="https://www.war.gov/Spotlights/Value-of-Service/">Value of Service</a></li>
+          <li><a href="https://www.war.gov/Spotlights/Drone-Dominance/">Drone Dominance</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-logo-row">
+      <img src="https://www.war.gov/Portals/1/Images/DOW-Icon-Header.png" alt="DOW Logo" onerror="this.style.display='none'">
+      <p>Adam Search provides the military forces needed to deter war and ensure our nation's security.</p>
+    </div>
+
+    <div class="footer-legal">
+      <a href="https://www.war.gov/Legal-Administrative/Privacy-Security/">Privacy &amp; Security</a>
+      <a href="https://www.war.gov/Legal-Administrative/Links-Disclaimer/">Links Disclaimer</a>
+      <a href="http://dodcio.defense.gov/DoDSection508/Std_Stmt.aspx">Section 508</a>
+      <a href="https://www.war.gov/resources/social-media-policy/">Social Media Policy</a>
+      <a href="http://dodcio.defense.gov/DoD-Web-Policy/">Web Policy</a>
+      <a href="http://www.esd.whs.mil/DD/plainlanguage/">Plain Writing Act</a>
+      <a href="http://www.dodig.mil/">DOW IG</a>
+      <a href="https://policy.defense.gov/OUSDP-Offices/Reporting-Civilian-Casualties/">Reporting Civilian Casualties</a>
+      <a href="https://prhome.war.gov/NoFear/">No FEAR Act</a>
+      <a href="https://www.dma.mil/Services/Visual-Information/References/Limitations/">Imagery Use</a>
+      <a href="https://www.esd.whs.mil/FOID/">FOIA</a>
+      <a href="http://open.defense.gov/">Open GOV</a>
+      <a href="https://media.defense.gov/2023/Mar/13/2003178168/-1/-1/1/DOD-STRATEGIC-MGMT-PLAN-2023.PDF">Strategic Management Plan</a>
+      <a href="https://www.usa.gov/">USA.gov</a>
+      <a href="https://business.defense.gov/">Small Business Act</a>
+      <a href="https://www.war.gov/site-index/">Site Map</a>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-top:8px;">
+      <div class="footer-social">
+        <a href="https://www.instagram.com/a__da__x" target="_blank">📷 Instagram @a__da__x</a>
+      </div>
+      <div class="crisis-badge">Veterans Crisis Line: Dial 988 then Press 1</div>
+    </div>
+
+    <p style="font-family:Arial,sans-serif;font-size:11px;color:#556;margin-top:18px;text-align:center;">
+      Hosted by Adam Search
+    </p>
+  </div>
+</footer>
+
+<script>
+const slides = [
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-1.jpg", caption: "Infrared still image (black hot) captured of unidentified object over western United States in December of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-A5.jpg", caption: "Infrared still image (black hot) captured of unidentified object over western United States in December of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-B2.jpg", caption: "Infrared still image (black hot) captured of unidentified object over western United States in September of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-B7-.jpg", caption: "Infrared still image (black hot) captured of unidentified object below helicopter over western United States in September of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-B18.jpg", caption: "Infrared still image (black hot) captured of unidentified object(s) over western United States in September of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/FBI-Photo-B20.jpg", caption: "Infrared still image (black hot) captured of unidentified object(s) over western United States in September of 2025." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/2024-04-30-Composite-Sketch.jpg", caption: "Recreation of potential anomalous sighting in southeastern United States in September of 2023." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/NASA-UAP-VM6-Apollo-17-1972.jpg", caption: "Archival imagery from the Apollo 17 mission to the Moon. The yellow box contains an enlarged area of the original photo in which three lights are visible above the lunar terrain." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR19-Unresolved-UAP-Report-Middle-East-May-2022.jpg", caption: "Still from a video that a U.S. military operator reported as featuring UAP flying across their screen." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR26-Unresolved-UAP-Report-United-Arab-Emirates-October-2023.jpg", caption: "Still from a video captured near the United Arab Emirates featuring reported UAP." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR34-Unresolved-UAP-Report-Greece-October-2023.jpg", caption: "Scope imagery — U.S. military operator reported UAP near Greece." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR35-Unresolved-UAP-Report-Greece-October-2023.jpg", caption: "A U.S. military operator reported UAP near Greece flying straight above the ocean towards land." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR38-Unresolved-UAP-Report-Middle-East-2013.jpg", caption: "Still from a video featuring an eight-pointed area of contrast captured via infrared sensor." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR43-Unresolved-UAP-Report-Africa-2025.jpg", caption: "A U.S. military operator reported UAP while operating within African airspace." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR45-Unresolved-UAP-Report-Middle-East-2020.jpg", caption: "In 2020, the U.S. Air Force reported UAP in the southern United States." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR46-Unresolved-UAP-Report-INDOPACOM-2024.jpg", caption: "U.S. Indo-Pacific Command reported UAP that resembles a football-shaped body near Japan." },
+  { url: "https://www.war.gov/portals/1/Interactive/2026/UFO/Slideshow/DOW-UAP-PR49-Unresolved-UAP-Report-Department-of-the-Army-2026.jpg", caption: "The U.S. Army reported UAP in North America in 2026." },
+];
+
+const files = [
+  { agency: "FBI", release: "May 8, 2026", incident: "Dec 2025", location: "Western United States", type: "IMG" },
+  { agency: "FBI", release: "May 8, 2026", incident: "Dec 2025", location: "Western United States", type: "IMG" },
+  { agency: "FBI", release: "May 8, 2026", incident: "Sep 2025", location: "Western United States", type: "IMG" },
+  { agency: "FBI", release: "May 8, 2026", incident: "Sep 2025", location: "Western United States", type: "IMG" },
+  { agency: "FBI", release: "May 8, 2026", incident: "Sep 2025", location: "Western United States", type: "IMG" },
+  { agency: "FBI", release: "May 8, 2026", incident: "Sep 2025", location: "Western United States", type: "IMG" },
+  { agency: "U.S. Military", release: "May 8, 2026", incident: "Sep 2023", location: "Southeastern United States", type: "IMG" },
+  { agency: "NASA", release: "May 8, 2026", incident: "1972", location: "Lunar Orbit (Apollo 17)", type: "IMG" },
+  { agency: "U.S. Military — Middle East", release: "May 8, 2026", incident: "May 2022", location: "Middle East", type: "VID" },
+  { agency: "U.S. Military — Middle East", release: "May 8, 2026", incident: "Oct 2023", location: "United Arab Emirates", type: "VID" },
+  { agency: "U.S. Military — Greece", release: "May 8, 2026", incident: "Oct 2023", location: "Greece", type: "VID" },
+  { agency: "U.S. Military — Greece", release: "May 8, 2026", incident: "Oct 2023", location: "Greece", type: "VID" },
+  { agency: "U.S. Military — Middle East", release: "May 8, 2026", incident: "2013", location: "Middle East", type: "VID" },
+  { agency: "U.S. Military — Africa", release: "May 8, 2026", incident: "2025", location: "Africa", type: "VID" },
+  { agency: "U.S. Air Force", release: "May 8, 2026", incident: "2020", location: "Southern United States", type: "VID" },
+  { agency: "U.S. Indo-Pacific Command", release: "May 8, 2026", incident: "2024", location: "Near Japan", type: "VID" },
+  { agency: "U.S. Army", release: "May 8, 2026", incident: "2026", location: "North America", type: "VID" },
+];
+
+// Build slideshow
+const ss = document.getElementById('slideshow');
+const dotsEl = document.getElementById('dots');
+const captionEl = document.getElementById('slide-caption');
+let current = 0, timer;
+
+slides.forEach((s, i) => {
+  const d = document.createElement('div');
+  d.className = 'slide' + (i === 0 ? ' active' : '');
+  d.style.backgroundImage = `url('${s.url}')`;
+  ss.appendChild(d);
+  const dot = document.createElement('button');
+  dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goTo(i);
+  dotsEl.appendChild(dot);
+});
+
+captionEl.textContent = slides[0].caption;
+
+function goTo(n) {
+  document.querySelectorAll('.slide')[current].classList.remove('active');
+  document.querySelectorAll('.slide-dot')[current].classList.remove('active');
+  current = (n + slides.length) % slides.length;
+  document.querySelectorAll('.slide')[current].classList.add('active');
+  document.querySelectorAll('.slide-dot')[current].classList.add('active');
+  captionEl.textContent = slides[current].caption;
+}
+
+document.getElementById('next-btn').onclick = () => { goTo(current + 1); resetTimer(); };
+document.getElementById('prev-btn').onclick = () => { goTo(current - 1); resetTimer(); };
+
+function resetTimer() { clearInterval(timer); timer = setInterval(() => goTo(current + 1), 5000); }
+timer = setInterval(() => goTo(current + 1), 5000);
+
+// Build files table
+function renderFiles(data) {
+  const tbody = document.getElementById('files-tbody');
+  tbody.innerHTML = '';
+  data.forEach(f => {
+    const tr = document.createElement('tr');
+    const badgeClass = f.type === 'VID' ? 'vid' : f.type === 'IMG' ? 'img' : 'pdf';
+    tr.innerHTML = `
+      <td>${f.agency}</td>
+      <td>${f.release}</td>
+      <td>${f.incident}</td>
+      <td>${f.location}</td>
+      <td><span class="type-badge ${badgeClass}">${f.type}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('file-count').textContent = data.length + ' Files';
+}
+
+function filterFiles() {
+  const agency = document.getElementById('f-agency').value;
+  const type = document.getElementById('f-type').value;
+  let filtered = files;
+  if (agency) filtered = filtered.filter(f => f.agency.includes(agency));
+  if (type) filtered = filtered.filter(f => f.type === type);
+  renderFiles(filtered);
+}
+
+renderFiles(files);
+
+// Filter close
+document.querySelector('.filter-close').onclick = function() {
+  this.closest('.file-filter').style.display = 'none';
+};
+</script>
+</body>
+</html>
